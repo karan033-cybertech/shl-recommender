@@ -33,24 +33,37 @@ TModel = TypeVar("TModel", bound=BaseModel)
 
 
 def call_groq(prompt_text: str) -> str:
+    import requests, os
     api_key = os.getenv("GROQ_API_KEY")
     url = "https://api.groq.com/openai/v1/chat/completions"
-
+    
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
     }
-
+    
     payload = {
         "model": "llama3-8b-8192",
         "messages": [
-            {"role": "user", "content": prompt_text},
+            {
+                "role": "system", 
+                "content": "You are an SHL assessment recommender."
+            },
+            {
+                "role": "user", 
+                "content": prompt_text
+            }
         ],
         "temperature": 0.2,
-        "max_tokens": 1000,
+        "max_tokens": 1000
     }
-
-    response = requests.post(url, headers=headers, json=payload, timeout=25)
+    
+    response = requests.post(
+        url, 
+        headers=headers, 
+        json=payload, 
+        timeout=25
+    )
     response.raise_for_status()
     data = response.json()
     return data["choices"][0]["message"]["content"]
