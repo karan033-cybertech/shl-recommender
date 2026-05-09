@@ -35,7 +35,7 @@ from retriever import CatalogRetriever, RetrieverConfig
 
 # --- Constants ---
 
-GEMINI_FLASH_MODEL = "gemini-2.5-flash"
+GEMINI_FLASH_MODEL = "gemini-1.5-flash-latest"
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
