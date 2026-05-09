@@ -45,7 +45,7 @@ class RetrieverConfig:
     catalog_data_path: Path = Path("catalog_data.pkl")
 
     # Embeddings model
-    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_model: str = "paraphrase-MiniLM-L3-v2"
 
 
 def _as_list(value: Any) -> List[str]:
@@ -94,7 +94,9 @@ def _get_embedder(model_name: str) -> SentenceTransformer:
     """
     global _EMBED_MODEL
     if _EMBED_MODEL is None:
+        print("Loading embedding model...")
         _EMBED_MODEL = SentenceTransformer(model_name)
+        print("Model loaded successfully!")
     return _EMBED_MODEL
 
 
