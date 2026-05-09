@@ -16,12 +16,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_gemini_key = os.getenv("GEMINI_API_KEY") or ""
-print(
-    "GEMINI_API_KEY prefix:",
-    _gemini_key[:8] if len(_gemini_key) >= 8 else (_gemini_key or "<missing>"),
-)
-
 import json
 import re
 from pathlib import Path
@@ -35,35 +29,31 @@ from retriever import CatalogRetriever, RetrieverConfig
 
 # --- Constants ---
 
-GEMINI_FLASH_MODEL = "gemini-2.5-flash-preview-05-20"
-
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
-def call_gemini(prompt_text: str) -> str:
-    api_key = os.getenv("GEMINI_API_KEY")
-    url = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_FLASH_MODEL}:generateContent?key={api_key}"
-    )
+def call_groq(prompt_text: str) -> str:
+    api_key = os.getenv("GROQ_API_KEY")
+    url = "https://api.groq.com/openai/v1/chat/completions"
 
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": prompt_text}],
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.2,
-            "maxOutputTokens": 1000,
-        },
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
 
-    response = requests.post(url, json=payload, timeout=25)
+    payload = {
+        "model": "llama3-8b-8192",
+        "messages": [
+            {"role": "user", "content": prompt_text},
+        ],
+        "temperature": 0.2,
+        "max_tokens": 1000,
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=25)
     response.raise_for_status()
     data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+    return data["choices"][0]["message"]["content"]
 MAX_USER_TURNS = 8
 
 INJECTION_HINTS = (
@@ -177,9 +167,9 @@ class RecommenderAgent:
         return self._catalog_cache
 
     def _gemini_generate_json(self, system: str, user: str, out_model: Type[TModel]) -> TModel:
-        if not os.getenv("GEMINI_API_KEY"):
+        if not os.getenv("GROQ_API_KEY"):
             raise RuntimeError(
-                "Missing GEMINI_API_KEY. Add it to `.env` for Gemini."
+                "Missing GROQ_API_KEY. Add it to `.env` for Groq."
             )
         schema_hint = json.dumps(out_model.model_json_schema(), indent=2)
         prompt_text = (
@@ -190,7 +180,7 @@ class RecommenderAgent:
             "--- TASK INPUT ---\n"
             f"{user}"
         )
-        text = call_gemini(prompt_text).strip()
+        text = call_groq(prompt_text).strip()
         if not text:
             raise ValueError("Empty Gemini response")
         return _parse_json_from_text(text, out_model)
