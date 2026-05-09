@@ -50,11 +50,13 @@ def call_gemini(prompt_text: str) -> str:
     payload = {
         "contents": [
             {
+                "role": "user",
                 "parts": [{"text": prompt_text}],
             }
         ],
         "generationConfig": {
             "temperature": 0.2,
+            "maxOutputTokens": 1000,
         },
     }
 
