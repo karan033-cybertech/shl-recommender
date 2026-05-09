@@ -1,0 +1,18 @@
+# Core API
+fastapi
+uvicorn
+
+# Data models / config
+pydantic
+python-dotenv
+
+# Web scraping
+requests
+beautifulsoup4
+
+# Vector store
+faiss-cpu
+
+# Local embeddings (downloads once, then runs offline)
+sentence-transformers
+
